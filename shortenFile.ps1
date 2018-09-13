@@ -5,22 +5,10 @@
     File extensions must start with . and exactly 3 characters.
     Files only
     None recursive
+    This script must be name shortenFile.ps1
 #>
 
-$minLength = Read-Host "What is the minimum length?" 
-$filesOnly = gci . *.* | where { ! $_.PSIsContainer }
-verifyInputs -minLength $minLength -files $filesOnly
-$minLength = [int]$minLength
-$files = $filesOnly | Select -Property Name
-$tempList = cloneTrim -source $files -minLength $minLength
-
-$tempList.ForEach({[PSCustomObject]$_}) | Format-Table -AutoSize
-$confirm = Read-Host "Confirm by typing y?"
-$ans = if($confirm -eq 'y'){ $true} else{$false}
-
-if($ans){renameThem -newList $tempList}
-
-
+#region FUNCTIONS
 function confirmThem{
     Param($newList)
     $newList.ForEach({[PSCustomObject]$_}) | Format-Table -AutoSize
@@ -58,6 +46,7 @@ function cloneTrim{
     $tracker = @{} #tracks name uniqueness
     $newList = @() #will eventually produce the new name
     foreach($i in $source){
+        if($i.Name -eq "shortenFile.ps1"){continue}
         #region sets checkable length
         $thisLength = $minLength;
         if ($i.Name.Length-4 -lt $minLength){
@@ -97,4 +86,22 @@ function changeName{
     return @{Name = $current; Len = $currentLen}
 }
 
+#endregion
+
+#region MAIN
+
+$minLength = Read-Host "What is the minimum length?" 
+$filesOnly = gci . *.* | where { ! $_.PSIsContainer }
+verifyInputs -minLength $minLength -files $filesOnly
+$minLength = [int]$minLength
+$files = $filesOnly | Select -Property Name
+$tempList = cloneTrim -source $files -minLength $minLength
+
+$tempList.ForEach({[PSCustomObject]$_}) | Format-Table -AutoSize
+$confirm = Read-Host "Confirm by typing y?"
+$ans = if($confirm -eq 'y'){ $true} else{$false}
+
+if($ans){renameThem -newList $tempList}
+
+#endregion
 
